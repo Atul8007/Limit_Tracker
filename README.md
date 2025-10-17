@@ -80,6 +80,6 @@ limit-tracker-extension/
 - [Claude Rate Limits](https://docs.anthropic.com/en/api/rate-limits)
 - [Gemini Rate Limits](https://ai.google.dev/gemini-api/docs/rate-limits)
 - [DeepSeek Rate Limits](https://api-docs.deepseek.com/quick_start/rate_limit)
-- [PRD](https://api-docs.deepseek.com/quick_start/rate_limit](https://docs.google.com/document/d/1rjWInD3A76CJEnaqzTB0-sQcGmirYAz3trBsABCqzwk/edit?tab=t.0#heading=h.g8k2ujsqvep)
+- [PRD](https://docs.google.com/document/d/1rjWInD3A76CJEnaqzTB0-sQcGmirYAz3trBsABCqzwk/edit?tab=t.0#heading=h.g8k2ujsqvep)
 
 *Last Updated: October 17, 2025, 05:42 PM IST*
