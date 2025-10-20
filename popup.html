@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Universal Limit Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; width: 400px; padding: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    input { margin-right: 5px; }
+    button { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>Usage Dashboard</h2>
+  <table id="usageTable">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Used</th>
+        <th>Limit</th>
+        <th>Remaining</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Configure Service</h3>
+  <input type="text" id="serviceName" placeholder="Service Name (e.g., Grok)">
+  <input type="number" id="maxLimit" placeholder="Max Limit (e.g., 15)">
+  <input type="text" id="urlPattern" placeholder="URL Pattern (e.g., *://api.x.ai/*)">
+  <input type="number" id="resetInterval" placeholder="Reset Interval (seconds, e.g., 7200)">
+  <button id="addService">Add/Update</button>
+
+  <h3>Controls</h3>
+  <button id="resetAll">Reset All Counts</button>
+  <button id="readPRD">Read PRD Aloud</button>
+  <button id="stopReading">Stop Reading</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
