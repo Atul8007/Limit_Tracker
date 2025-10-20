@@ -1,42 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Universal Limit Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: Arial, sans-serif; width: 400px; padding: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    input { margin-right: 5px; }
-    button { margin: 5px 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      width: 400px;
+      min-height: 500px;
+      background: linear-gradient(135deg, #000000 0%, #333333 100%);
+      color: #FFFFFF;
+      padding: 10px;
+    }
+    .glow {
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    .btn-neon {
+      background: #FFFFFF;
+      color: #000000;
+      transition: all 0.3s ease;
+    }
+    .btn-neon:hover {
+      background: #CCCCCC;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
+    }
+    .btn-neon:active {
+      transform: scale(0.95);
+    }
+    .input-neon {
+      background: #4B4B4B;
+      border: 1px solid #333333;
+      color: #FFFFFF;
+      transition: all 0.3s ease;
+    }
+    .input-neon:focus {
+      border-color: #FFFFFF;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 10px;
+    }
+    th, td {
+      border: 1px solid #4B4B4B;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #333333;
+    }
+    /* Loading screen */
+    #loadingScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .loading-bar-container {
+      width: 60%;
+      background: #4B4B4B;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .loading-bar {
+      height: 12px;
+      background: #FFFFFF;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      width: 0;
+      transition: width 0s;
+    }
+    .loading-bar.animate {
+      animation: progressFill 1.5s ease forwards;
+    }
+    /* Staggered animation for table rows */
+    #usageTable tr {
+      opacity: 0;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    #usageTable tr:nth-child(1) { animation-delay: 0.1s; }
+    #usageTable tr:nth-child(2) { animation-delay: 0.2s; }
+    #usageTable tr:nth-child(3) { animation-delay: 0.3s; }
+    #usageTable tr:nth-child(4) { animation-delay: 0.4s; }
+    #usageTable tr:nth-child(5) { animation-delay: 0.5s; }
+    /* Progress bar styles for table */
+    .progress-container {
+      width: 100%;
+      background: #4B4B4B;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 10px;
+      background: #FFFFFF;
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      width: 0;
+      transition: width 0s;
+    }
+    .progress-bar.animate {
+      animation: progressFill 1s ease forwards;
+    }
+    @keyframes progressFill {
+      from { width: 0; }
+      to { width: var(--progress-width); }
+    }
   </style>
 </head>
 <body>
-  <h2>Usage Dashboard</h2>
-  <table id="usageTable">
-    <thead>
-      <tr>
-        <th>Service</th>
-        <th>Used</th>
-        <th>Limit</th>
-        <th>Remaining</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="text-white text-lg font-semibold mb-4">
+      Loading Usage Data... <span id="loadingPercentage">0%</span>
+    </div>
+    <div class="loading-bar-container">
+      <div id="loadingBar" class="loading-bar" style="--progress-width: 0%;" data-progress="0"></div>
+    </div>
+  </div>
 
-  <h3>Configure Service</h3>
-  <input type="text" id="serviceName" placeholder="Service Name (e.g., Grok)">
-  <input type="number" id="maxLimit" placeholder="Max Limit (e.g., 15)">
-  <input type="text" id="urlPattern" placeholder="URL Pattern (e.g., *://api.x.ai/*)">
-  <input type="number" id="resetInterval" placeholder="Reset Interval (seconds, e.g., 7200)">
-  <button id="addService">Add/Update</button>
+  <div class="container mx-auto">
+    <!-- Usage Dashboard -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow-lg glow mb-4">
+      <h2 class="text-lg font-semibold text-white mb-2">Usage Dashboard</h2>
+      <table id="usageTable" class="w-full text-left">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Used</th>
+            <th>Limit</th>
+            <th>Remaining</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Example row structure for popup.js to follow -->
+          <!-- <tr>
+            <td class="p-2">Grok</td>
+            <td class="p-2">10</td>
+            <td class="p-2">15</td>
+            <td class="p-2">
+              5
+              <div class="progress-container mt-1">
+                <div class="progress-bar animate" style="--progress-width: 66.67%;" data-progress="66.67"></div>
+              </div>
+            </td>
+            <td class="p-2">
+              <button class="increment-btn btn-neon py-1 px-2 rounded text-sm">+1</button>
+            </td>
+          </tr> -->
+        </tbody>
+      </table>
+    </div>
 
-  <h3>Controls</h3>
-  <button id="resetAll">Reset All Counts</button>
-  <button id="readPRD">Read PRD Aloud</button>
-  <button id="stopReading">Stop Reading</button>
+    <!-- Configure Service -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow-lg glow mb-4">
+      <h3 class="text-md font-semibold text-white mb-2">Configure Service</h3>
+      <div class="space-y-2">
+        <input type="text" id="serviceName" placeholder="Service Name (e.g., Grok)" class="w-full p-2 rounded input-neon">
+        <input type="number" id="maxLimit" placeholder="Max Limit (e.g., 15)" class="w-full p-2 rounded input-neon">
+        <input type="text" id="urlPattern" placeholder="URL Pattern (e.g., *://api.x.ai/*)" class="w-full p-2 rounded input-neon">
+        <input type="number" id="resetInterval" placeholder="Reset Interval (seconds, e.g., 7200)" class="w-full p-2 rounded input-neon">
+        <button id="addService" class="w-full py-2 rounded btn-neon font-medium">Add/Update</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow-lg glow">
+      <h3 class="text-md font-semibold text-white mb-2">Controls</h3>
+      <div class="flex space-x-2">
+        <button id="resetAll" class="flex-1 py-2 rounded btn-neon font-medium">Reset All Counts</button>
+        <button id="readPRD" class="flex-1 py-2 rounded btn-neon font-medium">Read PRD Aloud</button>
+        <button id="stopReading" class="flex-1 py-2 rounded btn-neon font-medium">Stop Reading</button>
+      </div>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
