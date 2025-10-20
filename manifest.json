@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Universal Limit Tracker",
+  "name": "Limit Tracker",
   "version": "1.0",
-  "description": "Monitors usage limits for APIs and web services with notifications and TTS.",
+  "description": "A Chrome extension to monitor usage limits for APIs and web services.",
   "icons": {
     "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "permissions": [
     "storage",
@@ -19,11 +25,7 @@
     "*://api.deepseek.com/*",
     "*://grok.com/*"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon.png"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'"
   }
 }

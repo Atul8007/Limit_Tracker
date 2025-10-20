@@ -1,116 +1,100 @@
-async function loadServices() {
-  const { services = [] } = await chrome.storage.local.get('services');
-  const tbody = document.querySelector('#usageTable tbody');
-  tbody.innerHTML = '';
+// ---------------- Tabs ----------------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
 
-  // Calculate total usage percentage for loading screen
-  const totalUsed = services.reduce((sum, s) => sum + s.used, 0);
-  const totalLimit = services.reduce((sum, s) => sum + s.limit, 0);
-  const totalPercentage = totalLimit > 0 ? (totalUsed / totalLimit * 100).toFixed(2) : 0;
+// --------------- Popup Logic ----------------
+const usageTableBody = document.querySelector('#usageTable tbody');
+const loadingScreen = document.getElementById('loadingScreen');
+const loadingBar = document.getElementById('loadingBar');
+const loadingPercent = document.getElementById('loadingPercentage');
 
-  // Update loading bar
-  const loadingBar = document.getElementById('loadingBar');
-  loadingBar.style.setProperty('--progress-width', `${totalPercentage}%`);
-  loadingBar.dataset.progress = totalPercentage;
-  loadingBar.classList.add('animate');
-  document.getElementById('loadingPercentage').textContent = `${totalPercentage}%`;
+// Default services
+const defaultServices = [
+  { service: 'Grok', used:0, limit:10 },
+  { service: 'Claude', used:0, limit:10 },
+  { service: 'Gemini', used:0, limit:10 },
+  { service: 'DeepSeek', used:0, limit:10 }
+];
 
-  // Populate table
-  services.forEach((service, index) => {
-    const percentage = (service.used / service.limit * 100).toFixed(2);
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td class="p-2">${service.name}</td>
-      <td class="p-2">${service.used}</td>
-      <td class="p-2">${service.limit}</td>
-      <td class="p-2">
-        ${service.limit - service.used}
-        <div class="progress-container mt-1">
-          <div class="progress-bar animate" style="--progress-width: ${percentage}%;" data-progress="${percentage}"></div>
+// Initialize storage
+chrome.storage.local.get(['usageData'], (res)=>{
+  if(!res.usageData) chrome.storage.local.set({usageData: defaultServices}, ()=>renderTable(defaultServices));
+  else renderTable(res.usageData);
+});
+
+function renderTable(data){
+  let progress=0;
+  usageTableBody.innerHTML='';
+  data.forEach((s,index)=>{
+    const tr = document.createElement('tr');
+    const remaining = s.limit - s.used;
+    tr.innerHTML = `
+      <td>${s.service}</td>
+      <td>${s.used}</td>
+      <td>${s.limit}</td>
+      <td>
+        ${remaining}
+        <div class="progress-container">
+          <div class="progress-bar" style="width:${(s.used/s.limit)*100}%;"></div>
         </div>
       </td>
-      <td class="p-2">
-        <button class="increment-btn btn-neon py-1 px-2 rounded text-sm" data-index="${index}">+1</button>
-      </td>
+      <td><button class="increment-btn btn-neon" data-service="${s.service}">+1</button></td>
     `;
-    tbody.appendChild(row);
+    usageTableBody.appendChild(tr);
+    progress = Math.round(((index+1)/data.length)*100);
+    loadingPercent.textContent = progress + '%';
+    loadingBar.style.width = progress + '%';
   });
 
-  // Hide loading screen
-  document.getElementById('loadingScreen').classList.add('hidden');
+  // Hide loading
+  loadingScreen.style.display='none';
 
-  addIncrementListeners();
-}
-
-// Add listeners to +1 buttons
-function addIncrementListeners() {
-  document.querySelectorAll('.increment-btn').forEach(button => {
-    button.addEventListener('click', async () => {
-      const index = button.dataset.index;
-      const { services } = await chrome.storage.local.get('services');
-      services[index].used++;
-      await chrome.storage.local.set({ services });
-      chrome.runtime.sendMessage({ action: 'checkLimits', services });
-      loadServices();
+  // Increment buttons
+  document.querySelectorAll('.increment-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const serviceName = btn.dataset.service;
+      chrome.storage.local.get(['usageData'], res=>{
+        let usageData = res.usageData || [];
+        let s = usageData.find(x=>x.service===serviceName);
+        if(s && s.used < s.limit) s.used++;
+        chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
+      });
     });
   });
 }
 
-// Add/Update service
-document.getElementById('addService').addEventListener('click', async () => {
+// Add/Update Service
+document.getElementById('addService').addEventListener('click',()=>{
   const name = document.getElementById('serviceName').value.trim();
   const limit = parseInt(document.getElementById('maxLimit').value);
-  const urlPattern = document.getElementById('urlPattern').value.trim();
-  const resetInterval = parseInt(document.getElementById('resetInterval').value);
-
-  if (!name || isNaN(limit) || !urlPattern || isNaN(resetInterval)) {
-    alert('Please fill all fields correctly.');
-    return;
-  }
-
-  let { services = [] } = await chrome.storage.local.get('services');
-  const existingIndex = services.findIndex(s => s.name === name);
-  if (existingIndex !== -1) {
-    services[existingIndex] = { name, limit, used: services[existingIndex].used, urlPattern, resetInterval, lastReset: Date.now() };
-  } else {
-    services.push({ name, limit, used: 0, urlPattern, resetInterval, lastReset: Date.now() });
-  }
-  await chrome.storage.local.set({ services });
-  loadServices();
-  clearInputs();
-});
-
-function clearInputs() {
-  document.getElementById('serviceName').value = '';
-  document.getElementById('maxLimit').value = '';
-  document.getElementById('urlPattern').value = '';
-  document.getElementById('resetInterval').value = '';
-}
-
-// Reset all counts
-document.getElementById('resetAll').addEventListener('click', async () => {
-  const { services } = await chrome.storage.local.get('services');
-  services.forEach(service => {
-    service.used = 0;
-    service.lastReset = Date.now();
+  if(!name || !limit) return alert('Enter valid name and limit');
+  chrome.storage.local.get(['usageData'], res=>{
+    let usageData = res.usageData || [];
+    const existing = usageData.find(x=>x.service===name);
+    if(existing){ existing.limit=limit; existing.used=0; }
+    else usageData.push({service:name, used:0, limit:limit});
+    chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
   });
-  await chrome.storage.local.set({ services });
-  loadServices();
 });
 
-// TTS controls
-document.getElementById('readPRD').addEventListener('click', () => {
-  chrome.runtime.sendMessage({ action: 'readPRD' });
+// Reset All
+document.getElementById('resetAll').addEventListener('click',()=>{
+  chrome.storage.local.get(['usageData'], res=>{
+    let usageData = (res.usageData||[]).map(s=>({...s, used:0}));
+    chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
+  });
 });
 
-document.getElementById('stopReading').addEventListener('click', () => {
-  chrome.tts.stop();
+// TTS Placeholder
+let synth = window.speechSynthesis;
+document.getElementById('readPRD').addEventListener('click', ()=>{
+  const utter = new SpeechSynthesisUtterance("Product Requirements Document reading placeholder.");
+  synth.speak(utter);
 });
-
-// Real-time updates: Listen for changes from background
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.services) loadServices();
-});
-
-// Initial load
-loadServices();
+document.getElementById('stopReading').addEventListener('click', ()=>{ synth.cancel(); });
