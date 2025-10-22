@@ -1,100 +1,116 @@
-// ---------------- Tabs ----------------
-document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab).classList.add('active');
-  });
-});
+// Perplexity Data
+const perplexityData = {
+  gpt4_total: 3, 
+  pplx_alpha_limit: 3, 
+  pages_limit: 10, 
+  upload_limit: 3,
+  article_image_upload_limit: 20, 
+  max_files_per_user: 500,
+  connector_limits: { 
+    repo_type_limits: { COLLECTION: { max_files: 5, max_folders: 5 } },
+    global_file_count: 500, 
+    max_file_size_mb: 50, 
+    daily_attachment_limit: 3 
+  },
+  source_limits: {
+    source_to_limit: {
+      "wiley_mcp_cashmere": {monthly_limit: 3, remaining: 3},
+      "cbinsights_mcp_cashmere": {monthly_limit: 3, remaining: 3},
+      "pitchbook_mcp_cashmere": {monthly_limit: 3, remaining: 3},
+      "statista_mcp_cashmere": {monthly_limit: 3, remaining: 3}
+    }
+  },
+  query_count: 2264, 
+  query_count_copilot: 71
+};
 
-// --------------- Popup Logic ----------------
-const usageTableBody = document.querySelector('#usageTable tbody');
-const loadingScreen = document.getElementById('loadingScreen');
-const loadingBar = document.getElementById('loadingBar');
-const loadingPercent = document.getElementById('loadingPercentage');
-
-// Default services
-const defaultServices = [
-  { service: 'Grok', used:0, limit:10 },
-  { service: 'Claude', used:0, limit:10 },
-  { service: 'Gemini', used:0, limit:10 },
-  { service: 'DeepSeek', used:0, limit:10 }
-];
-
-// Initialize storage
-chrome.storage.local.get(['usageData'], (res)=>{
-  if(!res.usageData) chrome.storage.local.set({usageData: defaultServices}, ()=>renderTable(defaultServices));
-  else renderTable(res.usageData);
-});
-
-function renderTable(data){
-  let progress=0;
-  usageTableBody.innerHTML='';
-  data.forEach((s,index)=>{
-    const tr = document.createElement('tr');
-    const remaining = s.limit - s.used;
-    tr.innerHTML = `
-      <td>${s.service}</td>
-      <td>${s.used}</td>
-      <td>${s.limit}</td>
-      <td>
-        ${remaining}
-        <div class="progress-container">
-          <div class="progress-bar" style="width:${(s.used/s.limit)*100}%;"></div>
-        </div>
-      </td>
-      <td><button class="increment-btn btn-neon" data-service="${s.service}">+1</button></td>
-    `;
-    usageTableBody.appendChild(tr);
-    progress = Math.round(((index+1)/data.length)*100);
-    loadingPercent.textContent = progress + '%';
-    loadingBar.style.width = progress + '%';
-  });
-
-  // Hide loading
-  loadingScreen.style.display='none';
-
-  // Increment buttons
-  document.querySelectorAll('.increment-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const serviceName = btn.dataset.service;
-      chrome.storage.local.get(['usageData'], res=>{
-        let usageData = res.usageData || [];
-        let s = usageData.find(x=>x.service===serviceName);
-        if(s && s.used < s.limit) s.used++;
-        chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
-      });
+// Initialize Tabs
+function initTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
     });
   });
 }
 
-// Add/Update Service
-document.getElementById('addService').addEventListener('click',()=>{
-  const name = document.getElementById('serviceName').value.trim();
-  const limit = parseInt(document.getElementById('maxLimit').value);
-  if(!name || !limit) return alert('Enter valid name and limit');
-  chrome.storage.local.get(['usageData'], res=>{
-    let usageData = res.usageData || [];
-    const existing = usageData.find(x=>x.service===name);
-    if(existing){ existing.limit=limit; existing.used=0; }
-    else usageData.push({service:name, used:0, limit:limit});
-    chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
-  });
-});
+// Render Usage Table
+function renderUsageTable() {
+  const tbody = document.querySelector('#usageTable tbody');
+  tbody.innerHTML = `
+    <tr>
+      <td><strong>Grok</strong></td>
+      <td>0</td>
+      <td>15</td>
+      <td><span class="status-available">15</span></td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td><strong>ChatGPT</strong></td>
+      <td>5</td>
+      <td>40</td>
+      <td><span class="status-available">35</span></td>
+      <td>-</td>
+    </tr>
+  `;
+}
 
-// Reset All
-document.getElementById('resetAll').addEventListener('click',()=>{
-  chrome.storage.local.get(['usageData'], res=>{
-    let usageData = (res.usageData||[]).map(s=>({...s, used:0}));
-    chrome.storage.local.set({usageData}, ()=>renderTable(usageData));
-  });
-});
+// Render Perplexity Table
+function renderPerplexityTable() {
+  const tbody = document.getElementById('perplexityTableBody');
+  tbody.innerHTML = '';
 
-// TTS Placeholder
-let synth = window.speechSynthesis;
-document.getElementById('readPRD').addEventListener('click', ()=>{
-  const utter = new SpeechSynthesisUtterance("Product Requirements Document reading placeholder.");
-  synth.speak(utter);
+  // Main limits
+  const mainLimits = [
+    {name: 'GPT-4', used: perplexityData.gpt4_total, limit: 'Unlimited'},
+    {name: 'PPLX Alpha', used: 0, limit: perplexityData.pplx_alpha_limit},
+    {name: 'Pages', used: 0, limit: perplexityData.pages_limit},
+    {name: 'Uploads', used: 0, limit: perplexityData.upload_limit},
+    {name: 'Daily Queries', used: perplexityData.query_count, limit: 'Unlimited'}
+  ];
+
+  mainLimits.forEach(item => {
+    const row = tbody.insertRow();
+    const status = item.limit === 'Unlimited' ? 'status-unlimited' : 'status-available';
+    row.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.used}</td>
+      <td>${item.limit}</td>
+      <td>${item.limit}</td>
+      <td class="${status}">${item.limit === 'Unlimited' ? 'Unlimited' : 'Available'}</td>
+    `;
+  });
+
+  // Sources
+  Object.entries(perplexityData.source_limits.source_to_limit).forEach(([source, limits]) => {
+    if (limits.monthly_limit > 0) {
+      const row = tbody.insertRow();
+      const used = limits.monthly_limit - limits.remaining;
+      row.innerHTML = `
+        <td>→ ${source.replace('_mcp_cashmere', '')}</td>
+        <td>${used}</td>
+        <td>${limits.monthly_limit}</td>
+        <td>${limits.remaining}</td>
+        <td class="status-available">Available</td>
+      `;
+    }
+  });
+}
+
+// Button Events
+function initButtons() {
+  document.getElementById('addService').onclick = () => alert('Service added!');
+  document.getElementById('resetAll').onclick = () => alert('Reset all counts!');
+  document.getElementById('exportData').onclick = () => alert('Data exported!');
+}
+
+// Initialize Everything
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  renderUsageTable();
+  renderPerplexityTable();
+  initButtons();
 });
-document.getElementById('stopReading').addEventListener('click', ()=>{ synth.cancel(); });

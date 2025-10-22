@@ -1,31 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Limit Tracker",
+  "name": "Universal Limit Tracker",
   "version": "1.0",
-  "description": "A Chrome extension to monitor usage limits for APIs and web services.",
-  "icons": {
-    "128": "icon.png"
-  },
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
-  },
+  "description": "Track limits for Grok, Perplexity, ChatGPT & more!",
   "permissions": [
     "storage",
-    "notifications",
-    "webRequest",
-    "tts"
+    "activeTab"
   ],
   "host_permissions": [
-    "*://api.x.ai/*",
-    "*://api.anthropic.com/*",
-    "*://generativelanguage.googleapis.com/*",
-    "*://api.deepseek.com/*",
-    "*://grok.com/*"
+    "https://www.perplexity.ai/*"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Limit Tracker"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png"
+  },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'"
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
