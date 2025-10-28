@@ -1,31 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Limit Tracker",
+  "name": "Perplexity Settings Viewer",
+  "description": "Compare free vs Pro Perplexity JSON settings side-by-side.",
   "version": "1.0",
-  "description": "A Chrome extension to monitor usage limits for APIs and web services.",
   "icons": {
-    "128": "icon.png"
+    "48": "/icon16.png"
   },
   "action": {
-    "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "/icon16.png"
+    }
   },
   "permissions": [
-    "storage",
-    "notifications",
-    "webRequest",
-    "tts"
+    "storage"
   ],
   "host_permissions": [
-    "*://api.x.ai/*",
-    "*://api.anthropic.com/*",
-    "*://generativelanguage.googleapis.com/*",
-    "*://api.deepseek.com/*",
-    "*://grok.com/*"
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'"
-  }
+    "https://www.perplexity.ai/rest/user/settings"
+  ]
 }

@@ -2,185 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Limit Tracker</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Perplexity Settings</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <div class="tab-container">
-      <div class="tab active" data-tab="usage">Usage</div>
-      <div class="tab" data-tab="settings">Settings</div>
-    </div>
+  <h1>Perplexity Settings</h1>
+  <p class="subtitle">Your account settings <span id="status">(Live)</span></p>
 
-    <!-- Usage Tab -->
-    <div class="tab-content active" id="usage">
-      <div id="loadingScreen">
-        <div class="text-white" style="font-size:18px;font-weight:600;margin-bottom:16px;">
-          Loading Usage Data... <span id="loadingPercentage">0%</span>
-        </div>
-        <div class="loading-bar-container">
-          <div id="loadingBar" class="loading-bar" style="--progress-width:0%;"></div>
-        </div>
-      </div>
+  <div id="loading">Fetching your settings…</div>
 
-      <div class="section glow">
-        <h2>Usage Dashboard</h2>
-        <table id="usageTable">
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Used</th>
-              <th>Limit</th>
-              <th>Remaining</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Settings Tab -->
-    <div class="tab-content" id="settings">
-      <div class="section glow">
-        <h3>Configure Service</h3>
-        <div class="form-group">
-          <input type="text" id="serviceName" placeholder="Service Name (e.g., Grok)" class="input-neon">
-          <input type="number" id="maxLimit" placeholder="Max Limit (e.g., 15)" class="input-neon">
-          <input type="text" id="urlPattern" placeholder="URL Pattern (e.g., *://api.x.ai/*)" class="input-neon">
-          <input type="number" id="resetInterval" placeholder="Reset Interval (seconds, e.g., 7200)" class="input-neon">
-          <button id="addService" class="btn-neon">Add/Update</button>
-        </div>
-      </div>
-      <div class="section glow">
-        <h3>Controls</h3>
-        <div class="button-group">
-          <button id="resetAll" class="btn-neon">Reset All Counts</button>
-          <button id="readPRD" class="btn-neon">Read PRD Aloud</button>
-          <button id="stopReading" class="btn-neon">Stop Reading</button>
-        </div>
-      </div>
-    </div>
+  <div id="content" class="hidden">
+    <!-- Sections will be injected here -->
   </div>
-<style>body {
-  font-family: 'Inter', sans-serif;
-  width: 400px;
-  min-height: 500px;
-  background: linear-gradient(135deg, #000000 0%, #333333 100%);
-  color: #FFFFFF;
-  padding: 10px;
-  margin: 0;
-  box-sizing: border-box;
-}
 
-.glow { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
-
-.btn-neon {
-  background: #FFFFFF;
-  color: #000000;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.btn-neon:hover { background: #CCCCCC; box-shadow: 0 0 15px rgba(255,255,255,0.5); transform: scale(1.05); }
-.btn-neon:active { transform: scale(0.95); }
-
-.input-neon {
-  background: #4B4B4B;
-  border: 1px solid #333333;
-  color: #FFFFFF;
-  padding: 8px;
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-}
-.input-neon:focus { border-color: #FFFFFF; box-shadow: 0 0 8px rgba(255,255,255,0.5); outline: none; }
-
-table { border-collapse: separate; border-spacing: 0; width: 100%; margin-bottom: 10px; }
-th, td { border: 1px solid #4B4B4B; padding: 8px; text-align: left; }
-th { background-color: #333333; }
-
-#loadingScreen {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 10;
-}
-
-.loading-bar-container { width: 60%; background: #4B4B4B; border-radius: 4px; overflow: hidden; }
-.loading-bar {
-  height: 12px;
-  background: #FFFFFF;
-  box-shadow: 0 0 10px rgba(255,255,255,0.5);
-  width: 0;
-  transition: width 0.3s ease;
-}
-
-.tab-container { display:flex; margin-bottom:16px; }
-.tab {
-  flex:1; padding:8px; background:#4B4B4B; color:#FFF; text-align:center; cursor:pointer;
-  border-radius:4px 4px 0 0; transition:0.3s;
-}
-.tab.active { background:#FFF; color:#000; box-shadow:0 0 10px rgba(255,255,255,0.5); }
-.tab:hover { background:#CCC; }
-
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-
-.section { background:#2A2A2A; padding:16px; border-radius:8px; margin-bottom:16px; }
-.section h2, .section h3 { font-size:16px; font-weight:600; color:#FFF; margin-bottom:8px; }
-
-.form-group { display:flex; flex-direction:column; gap:8px; }
-.button-group { display:flex; gap:8px; }
-.button-group button { flex:1; padding:8px; border-radius:4px; }
-.text-center { text-align:center; }
-
-.progress-container { width:100%; background:#4B4B4B; border-radius:4px; overflow:hidden; margin-top:4px; }
-.progress-bar { height:10px; box-shadow:0 0 5px rgba(255,255,255,0.5); width:0; transition:0.3s; }
-
-/* Service-specific animated bars */
-.progress-bar.grok {
-  background: linear-gradient(90deg, #FFFFFF 0%, #CCCCCC 100%);
-  background-size: 200% 100%;
-  animation: grok-shimmer 2s linear infinite;
-}
-@keyframes grok-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.progress-bar.chatgpt {
-  background: repeating-linear-gradient(45deg, #FFFFFF, #FFFFFF 10px, #CCCCCC 10px, #CCCCCC 20px);
-  animation: chatgpt-stripes 1s linear infinite;
-}
-@keyframes chatgpt-stripes {
-  0% { background-position:0 0; }
-  100% { background-position:20px 0; }
-}
-
-.progress-bar.claude {
-  background:#FFFFFF;
-  position:relative;
-  overflow:hidden;
-}
-.progress-bar.claude::before {
-  content:'';
-  position:absolute; top:0; left:-100%; width:100%; height:100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  animation: claude-scan 1.5s linear infinite;
-}
-@keyframes claude-scan {
-  0% { left:-100%; }
-  100% { left:100%; }
-}
-
-    </style>
   <script src="popup.js"></script>
 </body>
 </html>
