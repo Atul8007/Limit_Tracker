@@ -1,116 +1,153 @@
-// Perplexity Data
-const perplexityData = {
-  gpt4_total: 3, 
-  pplx_alpha_limit: 3, 
-  pages_limit: 10, 
-  upload_limit: 3,
-  article_image_upload_limit: 20, 
-  max_files_per_user: 500,
-  connector_limits: { 
-    repo_type_limits: { COLLECTION: { max_files: 5, max_folders: 5 } },
-    global_file_count: 500, 
-    max_file_size_mb: 50, 
-    daily_attachment_limit: 3 
-  },
-  source_limits: {
-    source_to_limit: {
-      "wiley_mcp_cashmere": {monthly_limit: 3, remaining: 3},
-      "cbinsights_mcp_cashmere": {monthly_limit: 3, remaining: 3},
-      "pitchbook_mcp_cashmere": {monthly_limit: 3, remaining: 3},
-      "statista_mcp_cashmere": {monthly_limit: 3, remaining: 3}
-    }
-  },
-  query_count: 2264, 
-  query_count_copilot: 71
-};
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
 
-// Initialize Tabs
-function initTabs() {
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.tab).classList.add('active');
-    });
+function createTable(headers, rows) {
+  const table = document.createElement('table');
+  table.className = 'table';
+
+  const thead = document.createElement('thead');
+  const tr = document.createElement('tr');
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h;
+    tr.appendChild(th);
   });
+  thead.appendChild(tr);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  rows.forEach(([key, value, cls]) => {
+    const row = document.createElement('tr');
+    const tdKey = document.createElement('td');
+    tdKey.textContent = key;
+    const tdVal = document.createElement('td');
+    tdVal.textContent = value;
+    tdVal.className = 'value';
+    if (cls) tdVal.classList.add(cls);
+    row.appendChild(tdKey);
+    row.appendChild(tdVal);
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  return table;
 }
 
-// Render Usage Table
-function renderUsageTable() {
-  const tbody = document.querySelector('#usageTable tbody');
-  tbody.innerHTML = `
-    <tr>
-      <td><strong>Grok</strong></td>
-      <td>0</td>
-      <td>15</td>
-      <td><span class="status-available">15</span></td>
-      <td>-</td>
-    </tr>
-    <tr>
-      <td><strong>ChatGPT</strong></td>
-      <td>5</td>
-      <td>40</td>
-      <td><span class="status-available">35</span></td>
-      <td>-</td>
-    </tr>
-  `;
-}
+function renderSettings(data) {
+  const content = $('#content');
+  content.innerHTML = '';
 
-// Render Perplexity Table
-function renderPerplexityTable() {
-  const tbody = document.getElementById('perplexityTableBody');
-  tbody.innerHTML = '';
-
-  // Main limits
-  const mainLimits = [
-    {name: 'GPT-4', used: perplexityData.gpt4_total, limit: 'Unlimited'},
-    {name: 'PPLX Alpha', used: 0, limit: perplexityData.pplx_alpha_limit},
-    {name: 'Pages', used: 0, limit: perplexityData.pages_limit},
-    {name: 'Uploads', used: 0, limit: perplexityData.upload_limit},
-    {name: 'Daily Queries', used: perplexityData.query_count, limit: 'Unlimited'}
+  // --- Account Limits ---
+  const accountRows = [
+    ['gpt4_limit', data.gpt4_limit, 'highlight'],
+    ['pplx_alpha_limit', data.pplx_alpha_limit, 'highlight'],
+    ['pplx_beta_limit', data.pplx_beta_limit],
+    ['pages_limit', data.pages_limit],
+    ['upload_limit', data.upload_limit, 'highlight'],
+    ['query_count', data.query_count?.toLocaleString() || '0'],
+    ['default_model', data.default_model]
   ];
+  const accountSection = document.createElement('div');
+  accountSection.className = 'section';
+  accountSection.innerHTML = '<h2>Account Limits</h2>';
+  accountSection.appendChild(createTable(['Setting', 'Value'], accountRows));
+  content.appendChild(accountSection);
 
-  mainLimits.forEach(item => {
-    const row = tbody.insertRow();
-    const status = item.limit === 'Unlimited' ? 'status-unlimited' : 'status-available';
-    row.innerHTML = `
-      <td>${item.name}</td>
-      <td>${item.used}</td>
-      <td>${item.limit}</td>
-      <td>${item.limit}</td>
-      <td class="${status}">${item.limit === 'Unlimited' ? 'Unlimited' : 'Available'}</td>
-    `;
-  });
+  // --- File & Storage ---
+  const storage = data.connector_limits || {};
+  const storageRows = [
+    ['max_files_per_user', storage.global_file_count || 0],
+    ['max_file_size_mb', storage.max_file_size_mb],
+    ['daily_attachment_limit', storage.daily_attachment_limit]
+  ];
+  const storageSection = document.createElement('div');
+  storageSection.className = 'section';
+  storageSection.innerHTML = '<h2>File & Storage</h2>';
+  storageSection.appendChild(createTable(['Limit', 'Value'], storageRows));
+  content.appendChild(storageSection);
 
-  // Sources
-  Object.entries(perplexityData.source_limits.source_to_limit).forEach(([source, limits]) => {
-    if (limits.monthly_limit > 0) {
-      const row = tbody.insertRow();
-      const used = limits.monthly_limit - limits.remaining;
-      row.innerHTML = `
-        <td>→ ${source.replace('_mcp_cashmere', '')}</td>
-        <td>${used}</td>
-        <td>${limits.monthly_limit}</td>
-        <td>${limits.remaining}</td>
-        <td class="status-available">Available</td>
-      `;
+  // --- Premium Sources ---
+  const sources = (data.sources?.source_to_limit) || {};
+  const premiumSources = Object.entries(sources)
+    .filter(([k]) => k.includes('_mcp_cashmere'))
+    .map(([k, v]) => {
+      const name = k.replace('_mcp_cashmere', '').replace(/_/g, ' ');
+      const used = v.monthly_limit - (v.remaining || 0);
+      return [`${name}`, `${used} / ${v.monthly_limit} remaining`, 'premium'];
+    });
+
+  if (premiumSources.length > 0) {
+    const premiumSection = document.createElement('div');
+    premiumSection.className = 'section';
+    premiumSection.innerHTML = '<h2>Premium Sources (Pro Only)</h2>';
+    premiumSection.appendChild(createTable(['Source', 'Usage'], premiumSources));
+    content.appendChild(premiumSection);
+  }
+
+  // --- Connectors ---
+  const connectors = data.connectors?.connectors || [];
+  const connRows = connectors.map(c => [
+    `${c.name} (${c.auth_type})`,
+    c.connected ? 'Connected' : 'Not connected'
+  ]);
+
+  if (connRows.length > 0) {
+    const connSection = document.createElement('div');
+    connSection.className = 'section';
+    connSection.innerHTML = '<h2>Connectors</h2>';
+    connSection.appendChild(createTable(['Connector', 'Status'], connRows));
+    content.appendChild(connSection);
+  }
+
+  // --- Subscription ---
+  const subRows = [
+    ['Subscription', data.subscription_status || 'none'],
+    ['Tier', data.subscription_tier || 'Free'],
+    ['Time Zone', data.time_zone || '—'],
+    ['Notifications', `${data.notif_status || '—'} / ${data.email_status || '—'}`]
+  ];
+  const subSection = document.createElement('div');
+  subSection.className = 'section';
+  subSection.innerHTML = '<h2>Subscription & Preferences</h2>';
+  subSection.appendChild(createTable(['Field', 'Value'], subRows));
+  content.appendChild(subSection);
+}
+
+/* ---------- Main ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  const loading = $('#loading');
+  const content = $('#content');
+  const status = $('#status');
+
+  let data = null;
+
+  try {
+    const resp = await fetch('https://www.perplexity.ai/rest/user/settings', {
+      credentials: 'include'
+    });
+    if (resp.ok) {
+      data = await resp.json();
+      await chrome.storage.local.set({ lastSettings: data });
+      status.textContent = '(Live)';
     }
-  });
-}
+  } catch (e) {
+    console.warn('Fetch failed:', e);
+  }
 
-// Button Events
-function initButtons() {
-  document.getElementById('addService').onclick = () => alert('Service added!');
-  document.getElementById('resetAll').onclick = () => alert('Reset all counts!');
-  document.getElementById('exportData').onclick = () => alert('Data exported!');
-}
+  if (!data) {
+    const cached = await chrome.storage.local.get('lastSettings');
+    if (cached.lastSettings) {
+      data = cached.lastSettings;
+      status.textContent = '(Cached)';
+      loading.textContent = 'Using cached settings…';
+    }
+  }
 
-// Initialize Everything
-document.addEventListener('DOMContentLoaded', () => {
-  initTabs();
-  renderUsageTable();
-  renderPerplexityTable();
-  initButtons();
+  if (!data) {
+    loading.textContent = 'Error: Could not load settings. Are you logged in?';
+    return;
+  }
+
+  renderSettings(data);
+  loading.classList.add('hidden');
+  content.classList.remove('hidden');
 });

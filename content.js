@@ -1,38 +1,33 @@
-console.log("Content script loaded.");
+// content.js - Injected on Perplexity pages to fetch settings without CORS
+console.log('Content script loaded on Perplexity page');
 
-// Variable to store fetched data
-let userSettingsData = null;
-let fetchError = null;
-
-// Register listener immediately
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "getUserSettings") {
-    if (userSettingsData) {
-      sendResponse({ success: true, data: userSettingsData });
-    } else if (fetchError) {
-      sendResponse({ success: false, error: fetchError });
-    } else {
-      sendResponse({ success: false, error: "Data not loaded yet" });
-    }
-    return true; // keep the channel open (optional here)
-  }
-});
-
-// Fetch data as soon as script loads
-async function fetchUserSettings() {
+async function fetchSettings() {
   try {
-    const response = await fetch("https://www.perplexity.ai/rest/user/settings", {
-      credentials: "include"
+    const response = await fetch('https://www.perplexity.ai/rest/user/settings', {
+      method: 'GET',
+      credentials: 'include'  // Include cookies for auth
     });
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    userSettingsData = await response.json();
-    console.log("✅ User settings fetched", userSettingsData);
-
-  } catch (err) {
-    console.error("❌ Error fetching user settings:", err);
-    fetchError = err.message;
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    // Store in chrome.storage for popup access
+    await chrome.storage.local.set({ perplexitySettings: data });
+    console.log('Settings fetched and stored:', data);
+  } catch (error) {
+    console.error('Error fetching settings in content script:', error);
+    // Store error for popup
+    await chrome.storage.local.set({ perplexityError: error.message });
   }
 }
 
-fetchUserSettings();
+// Fetch on load (and optionally on a message from popup for refresh)
+fetchSettings();
+
+// Listen for refresh requests from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'refreshSettings') {
+    fetchSettings();
+    sendResponse({ status: 'refreshed' });
+  }
+});

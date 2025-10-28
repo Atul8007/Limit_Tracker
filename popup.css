@@ -1,136 +1,105 @@
-* { box-sizing: border-box; }
+/* Dark theme */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  width: 380px !important;
-  min-height: 550px;
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-  color: #FFFFFF;
-  padding: 12px;
-  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 16px;
+  max-width: 680px;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
+  line-height: 1.6;
 }
 
-.container { max-width: 100%; }
-.glow { 
-  box-shadow: 0 0 15px rgba(255,255,255,0.1); 
-  border: 1px solid #333; 
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.tab-container { 
-  display: flex; 
-  margin-bottom: 16px; 
-  background: #2a2a2a;
-  border-radius: 8px;
+.subtitle {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #aaaaaa;
 }
-.tab {
-  flex: 1; 
-  padding: 12px 8px; 
-  background: transparent; 
-  color: #aaa; 
-  text-align: center; 
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
+
+#status {
+  color: #4ade80;
   font-weight: 500;
 }
-.tab.active { 
-  background: #fff; 
-  color: #000; 
+
+#loading {
+  color: #888;
+  font-style: italic;
+  padding: 12px 0;
+}
+
+/* Section */
+.section {
+  margin-bottom: 24px;
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: #ffffff;
+  font-weight: 500;
+  border-bottom: 1px solid #333;
+  padding-bottom: 6px;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  background-color: #111;
+  border: 1px solid #333;
   border-radius: 8px;
-}
-.tab:hover { color: #fff; }
-
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-.section { 
-  background: #2a2a2a; 
-  padding: 16px; 
-  border-radius: 8px; 
-  margin-bottom: 12px; 
-}
-.section h2, .section h3 { 
-  font-size: 14px; 
-  font-weight: 600; 
-  color: #fff; 
-  margin: 0 0 12px 0; 
-}
-
-table { 
-  width: 100%; 
-  border-collapse: collapse; 
-  font-size: 12px;
-  background: #1a1a1a;
-  border-radius: 6px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-th, td { 
-  padding: 8px 6px; 
-  text-align: left; 
-  border-bottom: 1px solid #333; 
+
+.table th, .table td {
+  border: 1px solid #333;
+  padding: 10px 12px;
+  text-align: left;
 }
-th { 
-  background: #333; 
+
+.table th {
+  background-color: #1a1a1a;
+  color: #cccccc;
   font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.input-neon {
-  background: #1a1a1a;
-  border: 1px solid #444;
-  color: #fff;
-  padding: 8px;
-  border-radius: 4px;
-  width: 100%;
-  margin-bottom: 8px;
-  font-size: 12px;
-}
-.input-neon:focus { 
-  border-color: #4a90e2; 
-  outline: none; 
+.table td {
+  background-color: #0f0f0f;
+  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
 }
 
-.btn-neon {
-  background: #4a90e2;
-  color: #fff;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s;
-  width: 100%;
-  margin-bottom: 4px;
-}
-.btn-neon:hover { background: #357abd; }
-.btn-neon:active { transform: scale(0.98); }
-
-.button-group { 
-  display: flex; 
-  gap: 8px; 
-}
-.button-group button { 
-  flex: 1; 
+.table td.value {
+  font-weight: 500;
+  color: #ffffff;
 }
 
-.iframe-container {
-  width: 100%;
-  height: 250px;
-  border: 1px solid #444;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 12px;
-  background: #000;
+/* Highlight */
+.highlight {
+  background-color: #1a3d1a !important;
+  color: #a8ffb3 !important;
 }
 
-.table-container {
-  max-height: 220px;
-  overflow-y: auto;
-}
-.limits-table th {
-  position: sticky; 
-  top: 0;
-  background: #333;
+.premium {
+  background-color: #2d1b3a !important;
+  color: #d8b4ff !important;
 }
 
-.status-available { color: #4CAF50; font-weight: bold; }
-.status-exhausted { color: #F44336; font-weight: bold; }
-.status-unlimited { color: #2196F3; font-weight: bold; }
+/* Hover */
+.table tr:hover td {
+  background-color: #1a1a1a;
+  transition: background 0.2s;
+}
+
+.hidden { display: none; }

@@ -1,24 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Universal Limit Tracker",
+  "name": "Perplexity Settings Viewer",
+  "description": "Compare free vs Pro Perplexity JSON settings side-by-side.",
   "version": "1.0",
-  "description": "Track limits for Grok, Perplexity, ChatGPT & more!",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "https://www.perplexity.ai/*"
-  ],
+  "icons": {
+    "48": "/icon16.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Limit Tracker"
+    "default_icon": {
+      "48": "/icon16.png"
+    }
   },
-  "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.perplexity.ai/rest/user/settings"
+  ]
 }
