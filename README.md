@@ -12,8 +12,7 @@ You can compare key limits (e.g., GPT-4, Alpha/Beta access, uploads, queries, et
 ## 🚀 Features
 
 - **Live Data Fetching**  
-  Retrieves public Perplexity user configuration from  
-  [`https://www.perplexity.ai/rest/user/settings`](https://www.perplexity.ai/rest/user/settings)
+  Retrieves public Perplexity user configuration
 
 - **Visual Limit Dashboard**  
   Displays organized tables for:
